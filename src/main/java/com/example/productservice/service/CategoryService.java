@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 
@@ -21,10 +22,14 @@ public class CategoryService {
     }
 
     public Category addCategory(Category category) {
+        String categoryName = category.getName().toLowerCase();
+        category.setName(categoryName);        
         try {
             return categoryRepository.save(category);
         } catch (DuplicateKeyException ex) {
             throw new GeneralInternalException("Duplicate name (category)", HttpStatus.BAD_REQUEST);
+        } catch (DataAccessException ex) {
+            throw new GeneralInternalException("Database error while adding category");
         }
     }
 

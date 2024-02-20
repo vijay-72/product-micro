@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class ProductService {
@@ -20,11 +22,18 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product addProduct(Product product, String categoryName) {
+    public String addProduct(Product product, String categoryName) {
         try {
-            Category category = categoryService.getCategoryByName(categoryName);
-            product.setCategory(category);
-            return productRepository.save(product);
+            String lowerCaseCategoryName = categoryName.toLowerCase();
+            Category category = categoryService.getCategoryByName(lowerCaseCategoryName);
+            product.setCategoryName(lowerCaseCategoryName);
+
+            Set<String> requiredAttributes = category.getRequiredAttributes();
+            Map<String, String> productAttributes = product.getAttributes();
+            if (!productAttributes.keySet().containsAll(requiredAttributes)) {
+                throw new GeneralInternalException("Missing required attributes for category: " + category.getName(), HttpStatus.BAD_REQUEST);
+            }
+            return productRepository.save(product).getId();
         } catch (DataAccessException ex) {
             throw new GeneralInternalException("Some database error while adding product");
         }

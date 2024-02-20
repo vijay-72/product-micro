@@ -20,8 +20,8 @@ public class ProductController {
 
     @PostMapping("add-product/{categoryName}")
     public ResponseEntity<String> addProduct(@Valid @RequestBody Product product, @NotBlank @PathVariable String categoryName ) {
-        Product addedProd = productService.addProduct(product, categoryName);
-        return ResponseEntity.ok("Added product successfully! Id is: " + addedProd.getId());
+        String id = productService.addProduct(product, categoryName);
+        return ResponseEntity.ok("Added product successfully! Id is: " + id);
     }
 
     @GetMapping("/all")
