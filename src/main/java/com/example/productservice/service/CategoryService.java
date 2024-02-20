@@ -3,9 +3,13 @@ package com.example.productservice.service;
 import com.example.productservice.entity.Category;
 import com.example.productservice.exception.GeneralInternalException;
 import com.example.productservice.repository.CategoryRepository;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 @Service
 
 public class CategoryService {
@@ -28,4 +32,11 @@ public class CategoryService {
     }
 
 
+    public List<Category> getAllProducts() {
+        try {
+            return categoryRepository.findAll();
+        } catch (DataAccessException ex) {
+            throw new GeneralInternalException("Some database error while fetching all products");
+        }
+    }
 }
