@@ -2,6 +2,7 @@ package com.example.productservice.entity;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,9 +32,11 @@ public class Product {
     @DBRef
     private Category category;
 
+    @NotNull(message = "Price must not be null")
     @Min(value = 1, message = "The value must be greater than 0")
     private Integer price;
     @Min(value = 0, message = "The value must be positive")
+    @NotNull(message = "Quantity Available must not be null")
     private Integer quantityAvailable;
 
     private String brand;

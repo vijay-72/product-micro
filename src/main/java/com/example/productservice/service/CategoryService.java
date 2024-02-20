@@ -6,6 +6,7 @@ import com.example.productservice.repository.CategoryRepository;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,4 +40,12 @@ public class CategoryService {
             throw new GeneralInternalException("Some database error while fetching all products");
         }
     }
+
+//    public ResponseEntity<Category> getCategoryDetails(String categoryName) {
+//        try {
+//            return categoryRepository.findByName(categoryName).orElseThrow(());
+//        } catch (DataAccessException ex) {
+//            throw new GeneralInternalException("Some database error while fetching all products");
+//        }
+//    }
 }

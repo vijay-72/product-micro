@@ -36,4 +36,9 @@ public class ProductController {
         return ResponseEntity.ok("Deleted successfully!");
     }
 
+//    @GetMapping
+//    public ResponseEntity<List<Product>> filterProducts(
+//            @RequestParam
+//    )
+
 }

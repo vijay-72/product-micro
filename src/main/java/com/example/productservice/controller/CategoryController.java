@@ -4,6 +4,7 @@ import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
 import com.example.productservice.service.CategoryService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,4 +30,9 @@ public class CategoryController {
         List<Category> allCategories = categoryService.getAllProducts();
         return ResponseEntity.ok(allCategories);
     }
+
+//    @GetMapping("/{categoryName}")
+//    public ResponseEntity<Category> getCategory(@PathVariable @NotBlank String categoryName) {
+//        return categoryService.getCategoryDetails(categoryName);
+//    }
 }
