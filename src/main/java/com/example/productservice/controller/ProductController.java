@@ -4,6 +4,9 @@ import com.example.productservice.entity.Product;
 import com.example.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,5 +43,20 @@ public class ProductController {
 //    public ResponseEntity<List<Product>> filterProducts(
 //            @RequestParam
 //    )
+
+    @GetMapping("/search")
+    public Page<Product> searchProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, pageable);
+    }
 
 }
