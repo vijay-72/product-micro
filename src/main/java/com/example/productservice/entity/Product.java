@@ -36,11 +36,12 @@ public class Product {
     @NotBlank
     private String imageUrl;
 
-    @NotBlank
     @Indexed
     private String categoryName;
 
     private Map<String, String> attributes;
+
+    private String description;
 
     @Indexed
     private Set<String> tags;
