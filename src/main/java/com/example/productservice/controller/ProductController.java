@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,6 +56,7 @@ public class ProductController {
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "asc") String sortDirection) {
 
+        // TODO sort here itself
         Pageable pageable = PageRequest.of(page, size);
         return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, pageable);
     }

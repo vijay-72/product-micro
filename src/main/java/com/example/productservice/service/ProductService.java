@@ -11,7 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +58,8 @@ public class ProductService {
     }
 
     public void deleteProduct(String id) {
-        if (productRepository.deleteProductById(id) == 0) throw new GeneralInternalException("Something went wrong when deleting product with id" + id);
+        if (productRepository.deleteProductById(id) == 0) throw new GeneralInternalException("Something went wrong when deleting product with id: " + id,
+                HttpStatus.NOT_FOUND);
     }
 
     public Page<Product> searchProducts(String keyword, String category, Double minPrice, Double maxPrice, String sortBy, Pageable pageable) {
@@ -94,7 +94,7 @@ public class ProductService {
             query.with(org.springframework.data.domain.Sort.by(sortBy));
         }
 
-        long totalCount = mongoTemplate.count(query, Product.class); // Corrected total count
+        long totalCount = mongoTemplate.count(query, Product.class);
 
         query.with(pageable);
 
