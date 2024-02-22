@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,11 +59,19 @@ public class ProductController {
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDirection) {
 
         // TODO sort here itself
-        Pageable pageable = PageRequest.of(page, size);
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(sortDirection.toLowerCase());
+        } catch (IllegalArgumentException e) {
+            // Invalid sortDirection parameter, provide a default value or return an error response
+            direction = Sort.Direction.ASC; // Default sorting direction
+        }
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
         return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, pageable);
     }
 

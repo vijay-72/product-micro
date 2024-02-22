@@ -8,13 +8,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,42 +63,79 @@ public class ProductService {
     }
 
     public Page<Product> searchProducts(String keyword, String category, Double minPrice, Double maxPrice, String sortBy, Pageable pageable) {
-        Query query = new Query();
-        List<Criteria> criteriaList = new ArrayList<>();
+//        Query query = new Query();
+//        List<Criteria> criteriaList = new ArrayList<>();
+//
+//        if (keyword != null && !keyword.isEmpty()) {
+//            criteriaList.add(new Criteria().orOperator(
+//                    Criteria.where("name").regex(keyword, "i"),
+//                    Criteria.where("brand").regex(keyword, "i"),
+//                    Criteria.where("categoryName").regex(keyword, "i"),
+//                    Criteria.where("description").regex(keyword, "i")
+//            ));
+//        }
+//
+//        if (category != null && !category.isEmpty()) {
+//            criteriaList.add(Criteria.where("categoryName").is(category));
+//        }
+//
+//        if (minPrice != null) {
+//            criteriaList.add(Criteria.where("price").gte(minPrice));
+//        }
+//
+//        if (maxPrice != null) {
+//            criteriaList.add(Criteria.where("price").lte(maxPrice));
+//        }
+//
+//        if (!criteriaList.isEmpty()) {
+//            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+//        }
+//        if (sortBy != null && !sortBy.isEmpty()) {
+//            query.with(org.springframework.data.domain.Sort.by(sortBy));
+//        }
+//
+//        long totalCount = mongoTemplate.count(query, Product.class);
+//
+//        query.with(pageable);
+//
+//        List<Product> productList = mongoTemplate.find(query, Product.class);
+//
+//        return new PageImpl<>(productList, pageable, totalCount);
+        Criteria matchCriteria = new Criteria();
 
         if (keyword != null && !keyword.isEmpty()) {
-            criteriaList.add(new Criteria().orOperator(
+            matchCriteria.orOperator(
                     Criteria.where("name").regex(keyword, "i"),
                     Criteria.where("brand").regex(keyword, "i"),
                     Criteria.where("categoryName").regex(keyword, "i"),
                     Criteria.where("description").regex(keyword, "i")
-            ));
+            );
         }
 
         if (category != null && !category.isEmpty()) {
-            criteriaList.add(Criteria.where("categoryName").is(category));
+            matchCriteria.and("categoryName").is(category);
         }
 
         if (minPrice != null) {
-            criteriaList.add(Criteria.where("price").gte(minPrice));
+            matchCriteria.and("price").gte(minPrice);
         }
 
         if (maxPrice != null) {
-            criteriaList.add(Criteria.where("price").lte(maxPrice));
+            matchCriteria.and("price").lte(maxPrice);
         }
 
-        if (!criteriaList.isEmpty()) {
-            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
-        }
-        if (sortBy != null && !sortBy.isEmpty()) {
-            query.with(org.springframework.data.domain.Sort.by(sortBy));
-        }
+        Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.by(Sort.Order.asc("price")); // Default sorting if not provided
 
-        long totalCount = mongoTemplate.count(query, Product.class);
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(matchCriteria),  // Match documents based on criteria
+                Aggregation.sort(sort),  // Sort results
+                Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()),  // Pagination - skip
+                Aggregation.limit(pageable.getPageSize())  // Pagination - limit
+        );
 
-        query.with(pageable);
+        List<Product> productList = mongoTemplate.aggregate(aggregation, "products", Product.class).getMappedResults();
 
-        List<Product> productList = mongoTemplate.find(query, Product.class);
+        long totalCount = productList.size(); // This is a rough count, may not be accurate if documents have been added/removed since aggregation
 
         return new PageImpl<>(productList, pageable, totalCount);
     }

@@ -41,14 +41,14 @@ public class RequestValidationFilter extends OncePerRequestFilter {
                 Claims claims = Jwts.parser()
                         .setSigningKey(getSignKey()).build()
                         .parseClaimsJws(token).getBody();
-                String username = claims.getSubject();
+                String userId = claims.getSubject();
                 List<String> authorities = (List<String>) claims.get("authorities");
 
                 // Convert authority strings to GrantedAuthority objects
                 List<GrantedAuthority> authorityList = authorities.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-                Authentication auth = new UsernamePasswordAuthenticationToken(username,null,
+                Authentication auth = new UsernamePasswordAuthenticationToken(userId,null,
                         authorityList);
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
