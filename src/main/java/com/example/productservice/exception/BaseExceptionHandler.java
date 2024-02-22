@@ -1,12 +1,19 @@
 package com.example.productservice.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.net.URI;
@@ -29,6 +36,7 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }
+
     @ExceptionHandler({GeneralInternalException.class})
     public ProblemDetail handleGeneralInternalException(GeneralInternalException exception) {
         HttpStatus status = exception.getHttpStatus();
@@ -39,6 +47,7 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers,
@@ -66,8 +75,36 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
     }
 
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+        List<Map<String, String>> invalidParams = ex.getAllValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> {
+                            String param = (error instanceof ObjectError objectError ?
+                                    objectError.getObjectName() :
+                                    ((MessageSourceResolvable) error.getArguments()[0]).getDefaultMessage());
+
+                            param = (result.getContainerIndex() != null ?
+                                    param + "[" + result.getContainerIndex() + "]" : param);
+
+                            return Map.of("parameter", param, "error", error.getDefaultMessage());
+                        }))
+                .collect(Collectors.toList());
+
+        // Create the ProblemDetail object
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, "Please correct invalid path params shown below");
+        problemDetail.setTitle("Invalid path params");
+        problemDetail.setType(URI.create("http://localhost:8080/errors/invalidParameters"));
+        problemDetail.setProperty("invalid-params", invalidParams);
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return handleExceptionInternal(ex, problemDetail, headers, status, request);
+    }
+
     public String getUri(HttpStatus status) {
-        String uri = switch(status) {
+        String uri = switch (status) {
             case INTERNAL_SERVER_ERROR -> "http://localhost:8080/errors/internalServerError";
             case BAD_REQUEST -> "http://localhost:8080/errors/badRequest";
             case NOT_FOUND -> "http://localhost:8080/errors/notFound";
@@ -77,7 +114,7 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     public String getTitle(HttpStatus status) {
-        String title = switch(status) {
+        String title = switch (status) {
             case INTERNAL_SERVER_ERROR -> "Internal server error";
             case BAD_REQUEST -> "Invalid request";
             case NOT_FOUND -> "Not found";

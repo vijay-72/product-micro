@@ -2,8 +2,11 @@ package com.example.productservice.controller;
 
 import com.example.productservice.entity.Product;
 import com.example.productservice.service.ProductService;
+import com.mongodb.client.model.Collation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,22 +60,15 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer page,
+            @RequestParam(defaultValue = "10") @Positive Integer size,
             @RequestParam(required = false, defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDirection) {
 
-        // TODO sort here itself
-        Sort.Direction direction;
-        try {
-            direction = Sort.Direction.fromString(sortDirection.toLowerCase());
-        } catch (IllegalArgumentException e) {
-            // Invalid sortDirection parameter, provide a default value or return an error response
-            direction = Sort.Direction.ASC; // Default sorting direction
-        }
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, pageable);
+
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, sortDirection, pageable);
     }
 
 }
