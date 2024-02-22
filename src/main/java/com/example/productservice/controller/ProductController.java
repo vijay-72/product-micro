@@ -75,4 +75,9 @@ public class ProductController {
         return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, pageable);
     }
 
+    @GetMapping("/get-quantity/{productId}")
+    public Integer getAvailableQuantity(@NotBlank @PathVariable String productId) {
+        return productService.getAvailableQuantity(productId);
+    }
+
 }
