@@ -143,7 +143,7 @@ public class ProductService {
     public Integer getAvailableQuantity(String productId) {
         try {
             Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new GeneralInternalException("Cannot get quantity as product id:" + productId + "does not exist", HttpStatus.NOT_FOUND));
+                    .orElseThrow(() -> new GeneralInternalException("Cannot get quantity as product id: " + productId + "does not exist", HttpStatus.NOT_FOUND));
             return product.getQuantity();
         } catch (DataAccessException ex) {
             throw new GeneralInternalException("Some database error while trying to get quantity from product id: " + productId);

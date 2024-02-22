@@ -4,6 +4,7 @@ import com.example.productservice.entity.Product;
 import com.example.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
+@Slf4j
 public class ProductController {
     private final ProductService productService;
 
@@ -30,7 +32,7 @@ public class ProductController {
     }
 
     @PostMapping("add-product/{categoryName}")
-    public ResponseEntity<String> addProduct(@Valid @RequestBody Product product, @NotBlank @PathVariable String categoryName ) {
+    public ResponseEntity<String> addProduct(@Valid @RequestBody Product product, @NotBlank @PathVariable String categoryName) {
         String id = productService.addProduct(product, categoryName);
         return ResponseEntity.ok("Added product successfully! Id is: " + id);
     }
@@ -40,6 +42,7 @@ public class ProductController {
         List<Product> allProducts = productService.getAllProducts();
         return ResponseEntity.ok(allProducts);
     }
+
     @DeleteMapping("/remove-product/{id}")
     public ResponseEntity<String> removeProduct(@PathVariable @NotBlank String id) {
         productService.deleteProduct(id);
