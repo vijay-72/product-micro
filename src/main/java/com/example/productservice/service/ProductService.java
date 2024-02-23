@@ -59,15 +59,20 @@ public class ProductService {
     }
 
     public void deleteProduct(String id) {
-        if (productRepository.deleteProductById(id) == 0) throw new GeneralInternalException("Something went wrong when deleting product with id: " + id,
-                HttpStatus.NOT_FOUND);
+        try {
+            if (productRepository.deleteProductById(id) == 0)
+                throw new GeneralInternalException("Cannot delete product with id: " + id + " as id does not exist",
+                        HttpStatus.NOT_FOUND);
+        } catch (DataAccessException ex) {
+            throw new GeneralInternalException("Some database error while deleting product with id: " + id);
+        }
     }
 
     public Page<Product> searchProducts(String keyword, String category, Double minPrice, Double maxPrice, String sortBy, String sortDirection, Pageable pageable) {
         // Validate sortBy value
         if (!isValidSortByField(sortBy)) {
             String availableSortOptions = "Available sorting options: name, price, brand, categoryName";
-            throw new GeneralInternalException("Invalid sortBy value: " + sortBy +  ". " + availableSortOptions, HttpStatus.BAD_REQUEST);
+            throw new GeneralInternalException("Invalid sortBy value: " + sortBy + ". " + availableSortOptions, HttpStatus.BAD_REQUEST);
         }
         if (!(sortDirection.equalsIgnoreCase("asc") || sortDirection.equalsIgnoreCase("desc"))) {
             throw new GeneralInternalException("Direction must only be 'asc' or 'desc'", HttpStatus.BAD_REQUEST);

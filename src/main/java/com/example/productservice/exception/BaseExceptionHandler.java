@@ -1,5 +1,6 @@
 package com.example.productservice.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -75,33 +76,53 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
     }
 
-    @Override
-    protected ResponseEntity<Object> handleHandlerMethodValidationException(
-            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        List<Map<String, String>> invalidParams = ex.getAllValidationResults().stream()
-                .flatMap(result -> result.getResolvableErrors().stream()
-                        .map(error -> {
-                            String param = (error instanceof ObjectError objectError ?
-                                    objectError.getObjectName() :
-                                    ((MessageSourceResolvable) error.getArguments()[0]).getDefaultMessage());
-
-                            param = (result.getContainerIndex() != null ?
-                                    param + "[" + result.getContainerIndex() + "]" : param);
-
-                            return Map.of("parameter", param, "error", error.getDefaultMessage());
-                        }))
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(
+            ConstraintViolationException ex) {
+        log.error(ex.getMessage(), ex);
+        List<Map<String, String>> invalidVariables = ex.getConstraintViolations().stream()
+                .map(violation -> Map.of(
+                        "field", violation.getPropertyPath().toString(),
+                        "reason", violation.getMessage()))
                 .collect(Collectors.toList());
 
-        // Create the ProblemDetail object
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, "Please correct invalid path params shown below");
-        problemDetail.setTitle("Invalid path params");
-        problemDetail.setType(URI.create("http://localhost:8080/errors/invalidParameters"));
-        problemDetail.setProperty("invalid-params", invalidParams);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Please correct invalid path/query params shown below");
+        problemDetail.setTitle("Invalid path/query params in the request.");
+        problemDetail.setType(URI.create("http://localhost:8080/errors/badRequest"));
+        problemDetail.setProperty("invalid-variables", invalidVariables);
         problemDetail.setProperty("timestamp", Instant.now());
 
-        return handleExceptionInternal(ex, problemDetail, headers, status, request);
+        return problemDetail;
     }
+
+//    @Override
+//    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+//            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+//
+//        List<Map<String, String>> invalidParams = ex.getAllValidationResults().stream()
+//                .flatMap(result -> result.getResolvableErrors().stream()
+//                        .map(error -> {
+//                            String param = (error instanceof ObjectError objectError ?
+//                                    objectError.getObjectName() :
+//                                    ((MessageSourceResolvable) error.getArguments()[0]).getDefaultMessage());
+//
+//                            param = (result.getContainerIndex() != null ?
+//                                    param + "[" + result.getContainerIndex() + "]" : param);
+//
+//                            return Map.of("parameter", param, "error", error.getDefaultMessage());
+//                        }))
+//                .collect(Collectors.toList());
+//
+//        // Create the ProblemDetail object
+//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, "Please correct invalid path params shown below");
+//        problemDetail.setTitle("Invalid path params");
+//        problemDetail.setType(URI.create("http://localhost:8080/errors/invalidParameters"));
+//        problemDetail.setProperty("invalid-params", invalidParams);
+//        problemDetail.setProperty("timestamp", Instant.now());
+//
+//        return handleExceptionInternal(ex, problemDetail, headers, status, request);
+//    }
 
     public String getUri(HttpStatus status) {
         String uri = switch (status) {
