@@ -35,8 +35,7 @@ public class ProductController {
     }
 
     @PostMapping("add-product/{categoryName}")
-    public ResponseEntity<String> addProduct(@Valid @RequestBody Product product, @NotBlank @PathVariable String categoryName ) {
-        String id = productService.addProduct(product, categoryName);
+    public ResponseEntity<String> addProduct(@Valid @RequestBody Product product, @NotBlank @PathVariable String categoryName) {        String id = productService.addProduct(product, categoryName);
         return ResponseEntity.ok("Added product successfully! Id is: " + id);
     }
 
@@ -72,5 +71,12 @@ public class ProductController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
         return productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, sortDirection, pageable);
     }
+
+    @GetMapping("/get-quantity/{productId}")
+    public Integer getAvailableQuantity(@NotBlank @PathVariable String productId) {
+        return productService.getAvailableQuantity(productId);
+    }
+
+
 
 }

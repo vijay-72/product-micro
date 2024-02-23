@@ -24,6 +24,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/search").permitAll()
                         .requestMatchers("/api/products/all").permitAll()
                         .requestMatchers("/api/category/all").permitAll()
+                        .requestMatchers("/api/products/get-quantity/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new RequestValidationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
