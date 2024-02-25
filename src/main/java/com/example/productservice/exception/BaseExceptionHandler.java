@@ -96,52 +96,23 @@ public class BaseExceptionHandler extends ResponseEntityExceptionHandler {
         return problemDetail;
     }
 
-//    @Override
-//    protected ResponseEntity<Object> handleHandlerMethodValidationException(
-//            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-//
-//        List<Map<String, String>> invalidParams = ex.getAllValidationResults().stream()
-//                .flatMap(result -> result.getResolvableErrors().stream()
-//                        .map(error -> {
-//                            String param = (error instanceof ObjectError objectError ?
-//                                    objectError.getObjectName() :
-//                                    ((MessageSourceResolvable) error.getArguments()[0]).getDefaultMessage());
-//
-//                            param = (result.getContainerIndex() != null ?
-//                                    param + "[" + result.getContainerIndex() + "]" : param);
-//
-//                            return Map.of("parameter", param, "error", error.getDefaultMessage());
-//                        }))
-//                .collect(Collectors.toList());
-//
-//        // Create the ProblemDetail object
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, "Please correct invalid path params shown below");
-//        problemDetail.setTitle("Invalid path params");
-//        problemDetail.setType(URI.create("http://localhost:8080/errors/invalidParameters"));
-//        problemDetail.setProperty("invalid-params", invalidParams);
-//        problemDetail.setProperty("timestamp", Instant.now());
-//
-//        return handleExceptionInternal(ex, problemDetail, headers, status, request);
-//    }
 
     public String getUri(HttpStatus status) {
-        String uri = switch (status) {
+        return switch (status) {
             case INTERNAL_SERVER_ERROR -> "http://localhost:8080/errors/internalServerError";
             case BAD_REQUEST -> "http://localhost:8080/errors/badRequest";
             case NOT_FOUND -> "http://localhost:8080/errors/notFound";
             default -> throw new IllegalStateException("Unexpected value: " + status);
         };
-        return uri;
     }
 
     public String getTitle(HttpStatus status) {
-        String title = switch (status) {
+        return switch (status) {
             case INTERNAL_SERVER_ERROR -> "Internal server error";
             case BAD_REQUEST -> "Invalid request";
             case NOT_FOUND -> "Not found";
             default -> throw new IllegalStateException("Unexpected value: " + status);
         };
-        return title;
     }
 
 }

@@ -18,8 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.security.Key;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +39,8 @@ public class RequestValidationFilter extends OncePerRequestFilter {
             try {
                 String token = cookie.getValue();
                 Claims claims = Jwts.parser()
-                        .setSigningKey(getSignKey()).build()
-                        .parseClaimsJws(token).getBody();
+                        .verifyWith(getSignKey()).build()
+                        .parseSignedClaims(token).getPayload();
                 String userId = claims.getSubject();
                 List<String> authorities = (List<String>) claims.get("authorities");
 
@@ -60,7 +60,7 @@ public class RequestValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private Key getSignKey() {
+    private SecretKey getSignKey() {
         byte[] key = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(key);
     }
