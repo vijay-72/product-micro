@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +34,7 @@ public class Product {
     @NotNull
     private Integer quantity;
 
-    @NotBlank
-    private String imageUrl;
+    private ArrayList<String> images;
 
     @Indexed
     private String categoryName;
@@ -45,6 +45,8 @@ public class Product {
 
     @Indexed
     private Set<String> tags;
+
+    private Double averageRating;
 
     @CreatedDate
     private Date createdAt;
